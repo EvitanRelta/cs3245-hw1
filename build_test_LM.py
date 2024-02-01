@@ -12,19 +12,28 @@ import nltk
 
 
 class NGramLM:
+    """N-gram language model."""
+
     def __init__(self, n: int) -> None:
+        """
+        Args:
+            n (int): Number of grams to consider. (ie. the N in N-grams)
+        """
         self.n = n
         self.occurances: Counter[str] = Counter()
 
     def train_on_text(self, text: str) -> None:
+        """Include `text` in the model."""
         self.occurances.update(self.to_n_gram_generator(text))
 
     def _get_gram_probability(self, gram: str) -> float:
+        """Gets the probability of `gram` to occur."""
         if gram not in self.occurances:
             return 1
         return self.occurances[gram] / self.occurances.total()
 
     def get_probability(self, text: str) -> float:
+        """Gets the probability of the grams in `text` to occur."""
         output = 1
         for gram in self.to_n_gram_generator(text):
             output *= self._get_gram_probability(gram)
@@ -35,6 +44,7 @@ class NGramLM:
         self.occurances.update(vocab)
 
     def get_seen_grams(self) -> set[str]:
+        """Gets the set of all the grams seen by this model instance."""
         return set(self.occurances.keys())
 
     def to_n_gram_generator(self, text: str) -> Iterator[str]:
