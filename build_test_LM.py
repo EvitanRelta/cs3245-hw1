@@ -1,14 +1,12 @@
 #!/usr/bin/python3
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re
-import nltk
-import sys
 import getopt
+import re
+import sys
+
+import nltk
 
 
 def build_LM(in_file):
