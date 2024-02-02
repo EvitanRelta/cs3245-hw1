@@ -43,6 +43,16 @@ class NGramLM:
         """Perform +1 occurance to each gram in `vocab` on this model instance."""
         self.freq_dist.update(vocab)
 
+    def get_percent_unseen(self, text: str) -> float:
+        """Gets the percentage of the grams in `text` that's not been seen by this model before."""
+        num_unseen = 0
+        num_grams = 0
+        for gram in self.to_n_gram_generator(text):
+            if gram not in self.freq_dist:
+                num_unseen += 1
+            num_grams += 1
+        return num_unseen / num_grams
+
     def get_seen_grams(self) -> set[str]:
         """Gets the set of all the grams seen by this model instance."""
         return set(self.freq_dist.keys())
@@ -53,7 +63,7 @@ class NGramLM:
             yield text[i : i + self.n]
 
 
-TextLanguage: TypeAlias = Literal["malaysian", "indonesian", "tamil"]
+TextLanguage: TypeAlias = Literal["malaysian", "indonesian", "tamil", "other"]
 
 
 def load_labelled_data(file_path: str) -> Iterator[tuple[TextLanguage, str]]:
@@ -113,9 +123,16 @@ def test_LM(in_file: str, out_file: str, LM: tuple[NGramLM, NGramLM, NGramLM]) -
     """
     print("testing language models...")
 
+    OTHER_PERCENT_UNSEEN_THRESHOLD = 0.6
+    """Threshold for percent of the grams in a text being unseen, where equal or
+    higher percent will classify the text as "other" language.
+    """
     malaysian_lm, indonesian_lm, tamil_lm = LM
 
     def classify_text(text: str) -> TextLanguage:
+        if malaysian_lm.get_percent_unseen(text) >= OTHER_PERCENT_UNSEEN_THRESHOLD:
+            return "other"
+
         most_prob_lang: TextLanguage = "malaysian"
         best_prob = malaysian_lm.get_log_probability(text)
 
