@@ -115,20 +115,24 @@ def test_LM(in_file: str, out_file: str, LM: tuple[NGramLM, NGramLM, NGramLM]) -
 
     malaysian_lm, indonesian_lm, tamil_lm = LM
 
+    def classify_text(text: str) -> TextLanguage:
+        most_prob_lang: TextLanguage = "malaysian"
+        best_prob = malaysian_lm.get_log_probability(text)
+
+        if (prob := indonesian_lm.get_log_probability(text)) > best_prob:
+            most_prob_lang = "indonesian"
+            best_prob = prob
+
+        if (prob := tamil_lm.get_log_probability(text)) > best_prob:
+            most_prob_lang = "tamil"
+            best_prob = prob
+
+        return most_prob_lang
+
     with open(out_file, "w") as file:
         for text in load_unlabelled_data(in_file):
-            most_prob_lang: TextLanguage = "malaysian"
-            best_prob = malaysian_lm.get_log_probability(text)
-
-            if (prob := indonesian_lm.get_log_probability(text)) > best_prob:
-                most_prob_lang = "indonesian"
-                best_prob = prob
-
-            if (prob := tamil_lm.get_log_probability(text)) > best_prob:
-                most_prob_lang = "tamil"
-                best_prob = prob
-
-            file.write(most_prob_lang + "\n")
+            language = classify_text(text)
+            file.write(language + "\n")
 
 
 def usage():
