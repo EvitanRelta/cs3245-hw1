@@ -66,30 +66,29 @@ class NGramLM:
 TextLanguage: TypeAlias = Literal["malaysian", "indonesian", "tamil", "other"]
 
 
-def load_labelled_data(file_path: str) -> Iterator[tuple[TextLanguage, str]]:
-    """Loads a labelled input text file line-by-line, yielding tuples
-    containing the each input's language and text.
-    """
-    with open(file_path, "r", encoding="utf8") as file:
-        for line in file:
-            language, text = line.rstrip("\n").split(" ", 1)
-            yield language, text  # type: ignore
-
-
-def load_unlabelled_data(file_path: str) -> Iterator[str]:
-    """Loads an unlabelled input text file line-by-line, yielding each input text."""
-    with open(file_path, "r", encoding="utf8") as file:
-        for line in file.readlines():
-            stripped = line.rstrip("\n")
-            if stripped != "":
-                yield line.rstrip("\n")
-
-
 def build_LM(in_file: str) -> tuple[NGramLM, NGramLM, NGramLM]:
+    """Build language models for each label (ie. malaysian, indonesian, tamil),
+    returning 3 N-gram models for malaysian, indonesian and tamil in that order.
+
+    Each line in `in_file` contains a label and a string separated by a space.
+
+    Args:
+        in_file (str): Input training data file path.
+
+    Returns:
+        tuple[NGramLM, NGramLM, NGramLM]: N-gram models for malaysian,
+            indonesian and tamil respectively.
     """
-    build language models for each label
-    each line in in_file contains a label and a string separated by a space
-    """
+
+    def load_labelled_data(file_path: str) -> Iterator[tuple[TextLanguage, str]]:
+        """Loads a labelled input text file line-by-line, yielding tuples
+        containing the each input's language and text.
+        """
+        with open(file_path, "r", encoding="utf8") as file:
+            for line in file:
+                language, text = line.rstrip("\n").split(" ", 1)
+                yield language, text  # type: ignore
+
     print("building language models...")
 
     malaysian_lm = NGramLM(n=4)
@@ -116,11 +115,29 @@ def build_LM(in_file: str) -> tuple[NGramLM, NGramLM, NGramLM]:
 
 
 def test_LM(in_file: str, out_file: str, LM: tuple[NGramLM, NGramLM, NGramLM]) -> None:
+    """Test the language models on new strings, writing the most probable label
+    for each string into a line in `out_file`.
+
+    However, if the percentage of unseen grams in a string is
+    `>= OTHER_PERCENT_UNSEEN_THRESHOLD`, that string will be labelled as "other".
+
+    Each line of in_file contains a string without labels.
+
+    Args:
+        in_file (str): Input unlabelled test data file path.
+        out_file (str): Output file path for predicted labels.
+        LM (tuple[NGramLM, NGramLM, NGramLM]): N-gram models for malaysian,
+            indonesian and tamil respectively.
     """
-    test the language models on new strings
-    each line of in_file contains a string
-    you should print the most probable label for each string into out_file
-    """
+
+    def load_unlabelled_data(file_path: str) -> Iterator[str]:
+        """Loads an unlabelled input text file line-by-line, yielding each input text."""
+        with open(file_path, "r", encoding="utf8") as file:
+            for line in file.readlines():
+                stripped = line.rstrip("\n")
+                if stripped != "":
+                    yield line.rstrip("\n")
+
     print("testing language models...")
 
     OTHER_PERCENT_UNSEEN_THRESHOLD = 0.6
