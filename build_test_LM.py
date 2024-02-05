@@ -6,6 +6,7 @@ import getopt
 import math
 import re
 import sys
+from collections import Counter
 from typing import Iterator, Literal, TypeAlias
 
 import nltk
@@ -20,17 +21,17 @@ class NGramLM:
             n (int): Number of grams to consider. (ie. the N in N-grams)
         """
         self.n = n
-        self.freq_dist = nltk.probability.FreqDist()
+        self.occurances: Counter[str] = Counter()
 
     def train_on_text(self, text: str) -> None:
         """Include `text` in the model."""
-        self.freq_dist.update(self.to_n_gram_generator(text))
+        self.occurances.update(self.to_n_gram_generator(text))
 
     def _get_gram_log_probability(self, gram: str) -> float:
         """Gets the log-base10 of the probability for `gram` to occur."""
-        if gram not in self.freq_dist:
+        if gram not in self.occurances:
             return 0
-        return math.log10(self.freq_dist.freq(gram))
+        return math.log10(self.occurances[gram] / self.occurances.total())
 
     def get_log_probability(self, text: str) -> float:
         """Gets the log-base10 of the probability for the grams in `text` to occur."""
@@ -41,21 +42,21 @@ class NGramLM:
 
     def add_one_smoothing(self, vocab: set[str]) -> None:
         """Perform +1 occurance to each gram in `vocab` on this model instance."""
-        self.freq_dist.update(vocab)
+        self.occurances.update(vocab)
 
     def get_percent_unseen(self, text: str) -> float:
         """Gets the percentage of the grams in `text` that's not been seen by this model before."""
         num_unseen = 0
         num_grams = 0
         for gram in self.to_n_gram_generator(text):
-            if gram not in self.freq_dist:
+            if gram not in self.occurances:
                 num_unseen += 1
             num_grams += 1
         return num_unseen / num_grams
 
     def get_seen_grams(self) -> set[str]:
         """Gets the set of all the grams seen by this model instance."""
-        return set(self.freq_dist.keys())
+        return set(self.occurances.keys())
 
     def to_n_gram_generator(self, text: str) -> Iterator[str]:
         """Gets a generator that yields the N-gram substrings in a text."""
