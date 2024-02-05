@@ -87,6 +87,8 @@ def build_LM(in_file: str) -> tuple[NGramLM, NGramLM, NGramLM]:
         """
         with open(file_path, "r", encoding="utf8") as file:
             for line in file:
+                if line == "\n":
+                    break
                 language, text = line.rstrip("\n").split(" ", 1)
                 yield language, text  # type: ignore
 
@@ -135,9 +137,9 @@ def test_LM(in_file: str, out_file: str, LM: tuple[NGramLM, NGramLM, NGramLM]) -
         """Loads an unlabelled input text file line-by-line, yielding each input text."""
         with open(file_path, "r", encoding="utf8") as file:
             for line in file.readlines():
-                stripped = line.rstrip("\n")
-                if stripped != "":
-                    yield line.rstrip("\n")
+                if line == "\n":
+                    break
+                yield line.rstrip("\n")
 
     print("testing language models...")
 
