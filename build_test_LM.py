@@ -64,6 +64,23 @@ class NGramLM:
             yield text[i : i + self.n]
 
 
+# Unit tests.
+def _unit_test_NGramLM():
+    lm = NGramLM(n=4)
+    TEXT = "Semua manus"
+    GRAMS = ["Semu", "emua", "mua ", "ua m", "a ma", " man", "manu", "anus"]
+
+    assert [*lm.to_n_gram_generator(TEXT)] == GRAMS
+    lm.train_on_text("Semua manus")
+    assert lm.get_seen_grams() == set(GRAMS)
+    assert lm.get_log_probability(GRAMS[0]) == math.log10(1 / len(GRAMS))
+    lm.add_one_smoothing(set(GRAMS) | set(["1111", "2222", "3333"]))
+    assert lm.get_log_probability(GRAMS[0]) == math.log10(2 / (2 * len(GRAMS) + 3))
+
+
+# _unit_test_NGramLM()
+
+
 TextLanguage: TypeAlias = Literal["malaysian", "indonesian", "tamil", "other"]
 
 
